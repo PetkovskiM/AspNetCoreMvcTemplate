@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="AspNetCoreMvcTemplate.Tests/AspNetCoreMvcTemplate.Tests.csproj" />
   <Project Path="AspNetCoreMvcTemplate.Web/AspNetCoreMvcTemplate.Web.csproj" />
 </Solution>
