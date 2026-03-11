@@ -1,0 +1,29 @@
+@model AspNetCoreMvcTemplate.Web.ViewModels.Error.StatusCodeErrorViewModel
+
+@{
+    ViewData["Title"] = Model.Title;
+    Layout = "_Layout";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4">
+                <div class="card-body p-4 p-md-5 text-center">
+                    <div class="display-1 fw-bold text-warning mb-3">@Model.StatusCode</div>
+                    <h1 class="h2 fw-semibold mb-3">@Model.Title</h1>
+                    <p class="text-muted mb-4">@Model.Message</p>
+
+                    <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-primary px-4">
+                            Go to home
+                        </a>
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary px-4">
+                            Go back
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
