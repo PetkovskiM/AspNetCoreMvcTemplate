@@ -29,6 +29,7 @@ public class ErrorController : Controller
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult StatusCodeError(int statusCode)
     {
+        // Implementacijata na IStatusCodeReExecuteFeature e dodadena od strana na ASP.NET Core middleware
         var statusCodeFeature = HttpContext.Features.Get<IStatusCodeReExecuteFeature>();
 
         var model = statusCode switch
