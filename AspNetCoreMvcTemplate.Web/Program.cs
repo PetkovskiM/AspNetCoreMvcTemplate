@@ -35,6 +35,9 @@ namespace AspNetCoreMvcTemplate.Web
             {
                 options.LoginPath = "/Account/Login";
                 options.AccessDeniedPath = "/Account/AccessDenied";
+                options.Cookie.HttpOnly = true;
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+                options.SlidingExpiration = true;
             });
 
 
@@ -47,7 +50,7 @@ namespace AspNetCoreMvcTemplate.Web
                 app.UseHsts();
             }
 
-            app.UseExceptionHandler("/Error");
+            //app.UseExceptionHandler("/Error");
 
             app.UseStatusCodePagesWithReExecute("/Error/{0}");
 

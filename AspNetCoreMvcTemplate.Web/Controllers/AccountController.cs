@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AspNetCoreMvcTemplate.Web.Controllers
 {
+    [AutoValidateAntiforgeryToken]
     public class AccountController : Controller
     {
         private readonly UserManager<ApplicationUser> userManager;
@@ -18,19 +19,24 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login()
+        [AllowAnonymous]
+        public IActionResult Login(string? returnUrl = null)
         {
-            return View();
+            var model = new LoginViewModel
+            {
+                ReturnUrl = returnUrl
+            };
+
+            return View(model);
         }
 
         [AllowAnonymous]
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                return View();
+                return View(model);
             }
 
             var result = await signInManager.PasswordSignInAsync(model.Email , model.Password, model.RememberMe, lockoutOnFailure: false);
@@ -55,7 +61,6 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
 
             ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             return View(model);
-            
         }
 
         [HttpGet]
@@ -67,12 +72,11 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                return View();
+                return View(model);
             }
 
             var user = new ApplicationUser
@@ -98,12 +102,16 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
 
         }
 
+        [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Logout()
         {
             await signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
 
+        [AllowAnonymous]
+        [HttpGet]
         public IActionResult AccessDenied()
         {
             return View();
