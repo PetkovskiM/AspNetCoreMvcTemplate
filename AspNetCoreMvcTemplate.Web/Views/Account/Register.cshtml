@@ -1,4 +1,4 @@
-﻿@using AspNetCoreMvcTemplate.Web.ViewModels.Account
+@using AspNetCoreMvcTemplate.Web.ViewModels.Account
 @model RegisterViewModel
 
 @{
@@ -9,6 +9,12 @@
 
 <form asp-action="Register" method="post">
     <span asp-validation-summary="All" class="text-danger"></span>
+
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
 
     <div class="mb-3">
         <label asp-for="Email" class="form-label"></label>

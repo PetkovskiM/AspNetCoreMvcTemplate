@@ -1,4 +1,4 @@
-﻿using AspNetCoreMvcTemplate.Web.Models.Identity;
+using AspNetCoreMvcTemplate.Web.Models.Identity;
 using AspNetCoreMvcTemplate.Web.ViewModels.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -82,7 +82,8 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
             var user = new ApplicationUser
             {
                 UserName = model.Email,
-                Email = model.Email
+                Email = model.Email,
+                Name = model.Name
             };
 
             var result = await userManager.CreateAsync(user, model.Password);
@@ -118,3 +119,5 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
         }
     }
 }
+
+

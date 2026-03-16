@@ -1,13 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace AspNetCoreMvcTemplate.Web.ViewModels.Account
 {
     public class RegisterViewModel
     {
-
-        // TO DO: da se prosiri so ime ApplicationUser.
-        //[Required]
-        //public string Name { get; set; } = string.Empty;
+        [Required]
+        [Display(Name = "Name")]
+        public string Name { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]
