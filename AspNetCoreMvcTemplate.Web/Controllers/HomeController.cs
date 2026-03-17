@@ -12,11 +12,5 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
             return View();
         }
 
-        [Authorize]
-        public IActionResult Secure()
-        {
-            return View();
-        }
-
     }
 }
