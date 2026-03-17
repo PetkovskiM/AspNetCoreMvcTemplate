@@ -1,0 +1,35 @@
+﻿@using AspNetCoreMvcTemplate.Web.Models.Identity
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    ApplicationUser? currentUser = null;
+
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        currentUser = await UserManager.GetUserAsync(User);
+    }
+}
+
+
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <li class="nav-item d-flex align-items-center me-2">
+        <span class="nav-link text-dark">Hello  @(currentUser?.Name ?? User.Identity?.Name)</span>
+    </li>
+    <li class="nav-item d-flex align-items-center me-2">
+        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+            <button type="submit" class="nav-link btn btn-link text-dark border-0 p-0">Logout</button>
+        </form>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a> 
+    </li>
+}
