@@ -1,4 +1,10 @@
 <Solution>
-  <Project Path="AspNetCoreMvcTemplate.Tests/AspNetCoreMvcTemplate.Tests.csproj" />
-  <Project Path="AspNetCoreMvcTemplate.Web/AspNetCoreMvcTemplate.Web.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/AspNetCoreMvcTemplate.Emailing/AspNetCoreMvcTemplate.Emailing.csproj" />
+    <Project Path="src/AspNetCoreMvcTemplate.Web/AspNetCoreMvcTemplate.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AspNetCoreMvcTemplate.Emailing.Tests/AspNetCoreMvcTemplate.Emailing.Tests.csproj" />
+    <Project Path="tests/AspNetCoreMvcTemplate.Web.Tests/AspNetCoreMvcTemplate.Web.Tests.csproj" />
+  </Folder>
 </Solution>
