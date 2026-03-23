@@ -1,10 +1,10 @@
 using AspNetCoreMvcTemplate.Emailing.Abstractions;
+using AspNetCoreMvcTemplate.Emailing.Models;
 using AspNetCoreMvcTemplate.Web.Models.Identity;
 using AspNetCoreMvcTemplate.Web.ViewModels.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using AspNetCoreMvcTemplate.Emailing.Models;
 
 namespace AspNetCoreMvcTemplate.Web.Controllers
 {
@@ -129,7 +129,13 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
                         """
                 };
 
-                await emailSender.SendAsync(message);
+                var sendResult = await emailSender.SendAsync(message);
+
+                if (!sendResult.Succeeded)
+                {
+                    ModelState.AddModelError(string.Empty, "We could not send the email right now. Please try again.");
+                    return View(model);
+                }
 
                 return RedirectToAction(nameof(RegisterConfirmation), new { email = user.Email });
             }
@@ -191,6 +197,134 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
         [AllowAnonymous]
         [HttpGet]
         public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if(!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await userManager.FindByEmailAsync(model.Email);
+
+            if (user == null || !(await userManager.IsEmailConfirmedAsync(user)))
+            {
+                return RedirectToAction(nameof(ForgotPasswordConfirmation));
+            }
+
+            var token = await userManager.GeneratePasswordResetTokenAsync(user);
+
+            var resetLink = Url.Action(
+                nameof(ResetPassword),
+                "Account",
+                new { token, email = user.Email },
+                Request.Scheme);
+
+            if(resetLink is null)
+            {
+                ModelState.AddModelError(string.Empty, "Unable to generate password reset link.");
+                return View(model);
+            }
+
+            //TODO: Da se napravi htmlBody da se vcituva od file.
+            var sendResult = await emailSender.SendAsync(new EmailMessage
+            {
+                To = user.Email!,
+                Subject = "Reset your password",
+                HtmlBody = $"""
+                    <p>Hello {user.Name},</p>
+                    <p>You can reset your password by clicking the link below:</p>
+                    <p><a href="{resetLink}">Reset Password</a></p>
+                    """
+            });
+
+            if (!sendResult.Succeeded)
+            {
+                // log this later with ILogger<AccountController>
+                return RedirectToAction(nameof(ForgotPasswordConfirmation));
+            }
+
+
+            return RedirectToAction(nameof(ForgotPasswordConfirmation));
+        }
+
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPasswordConfirmation()
+        {
+            return View();
+        }
+
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPassword(string? token, string? email)
+        {
+            if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(email))
+            {
+                return View("Error");
+            }
+
+            var model = new ResetPasswordViewModel
+            {
+                Token = token,
+                Email = email
+            };
+
+            return View(model);
+        }
+
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if(!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await userManager.FindByEmailAsync(model.Email);
+
+            if(user == null)
+            {
+                return RedirectToAction(nameof(ResetPasswordConfirmation));
+            }
+
+            var result = await userManager.ResetPasswordAsync(user, model.Token, model.Password);
+
+            if (result.Succeeded)
+            {
+                return RedirectToAction(nameof(ResetPasswordConfirmation));
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View(model);
+        }
+
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPasswordConfirmation()
         {
             return View();
         }
