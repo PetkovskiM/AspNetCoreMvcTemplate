@@ -1,12 +1,12 @@
 ﻿@model AspNetCoreMvcTemplate.Web.ViewModels.Account.EmailInputViewModel
 
 @{
-    ViewData["Title"] = "Forgot Password";
+    ViewData["Title"] = "Resend Confirmation Email";
 }
 
 <h1>@ViewData["Title"]</h1>
 
-<form asp-action="ForgotPassword" method="post">
+<form asp-action="ResendConfirmationEmail" method="post">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="mb-3">
@@ -15,7 +15,7 @@
         <span asp-validation-for="Email" class="text-danger"></span>
     </div>
 
-    <button type="submit" class="btn btn-primary">Send Reset Link</button>
+    <button type="submit" class="btn btn-primary">Resend Confirmation Email</button>
 </form>
 
 @section Scripts {

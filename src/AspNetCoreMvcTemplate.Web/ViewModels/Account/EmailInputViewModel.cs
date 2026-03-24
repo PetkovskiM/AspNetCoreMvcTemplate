@@ -2,7 +2,7 @@
 
 namespace AspNetCoreMvcTemplate.Web.ViewModels.Account
 {
-    public class ForgotPasswordViewModel
+    public class EmailInputViewModel
     {
         [Required]
         [EmailAddress]

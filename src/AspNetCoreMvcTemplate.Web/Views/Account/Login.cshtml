@@ -36,6 +36,15 @@
     <a asp-action="ForgotPassword">Forgot your password?</a>
 </p>
 
+@if (ViewBag.ShowResendConfirmationLink == true)
+{
+    <p>
+        <a asp-action="ResendConfirmationEmail" asp-route-email="@Model.Email">
+            Resend confirmation email
+        </a>
+    </p>
+}
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
