@@ -1,0 +1,14 @@
+﻿@{
+    ViewData["Title"] = "Registration Confirmation";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<p>
+    Your account has been created. Please check your email
+    @if (ViewBag.Email != null)
+    {
+        <text>(@ViewBag.Email)</text>
+    }
+    and click the confirmation link before logging in.
+</p>
