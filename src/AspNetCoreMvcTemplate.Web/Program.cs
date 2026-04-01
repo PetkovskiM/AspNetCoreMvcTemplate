@@ -1,23 +1,25 @@
-using AspNetCoreMvcTemplate.Web.Data;
-using AspNetCoreMvcTemplate.Web.Models.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 using AspNetCoreMvcTemplate.Emailing.DependencyInjection;
+using AspNetCoreMvcTemplate.Web.Data;
+using AspNetCoreMvcTemplate.Web.Extensions;
+using AspNetCoreMvcTemplate.Web.Models.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace AspNetCoreMvcTemplate.Web
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
             builder.Services.AddEmailing(builder.Configuration);
+            builder.Services.AddAdminBootstrap(builder.Configuration);
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
@@ -47,8 +49,9 @@ namespace AspNetCoreMvcTemplate.Web
                 options.SlidingExpiration = true;
             });
 
-
             var app = builder.Build();
+
+            await app.SeedAdminBootstrapAsync();
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
@@ -56,8 +59,6 @@ namespace AspNetCoreMvcTemplate.Web
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
-
-            //app.UseExceptionHandler("/Error");
 
             app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
@@ -73,7 +74,7 @@ namespace AspNetCoreMvcTemplate.Web
                 pattern: "{controller=Home}/{action=Index}/{id?}")
                 .WithStaticAssets();
 
-            app.Run();
+            await app.RunAsync();
         }
     }
 }
