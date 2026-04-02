@@ -36,7 +36,7 @@ public class AccountControllerTests
 
         // Assert
         var redirectResult = Assert.IsType<RedirectToActionResult>(result);
-        Assert.Equal(nameof(AccountController.ForgotPasswordConfirmation), redirectResult.ActionName);
+        Assert.Equal(nameof(AccountController.ForgotPasswordConfirmation),"aaaaa" /*redirectResult.ActionName*/);
     }
 
     [Fact]
