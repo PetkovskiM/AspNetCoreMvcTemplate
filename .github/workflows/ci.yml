@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Restore, Build, Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Show .NET info
+        run: dotnet --info
+
+      - name: Restore dependencies
+        run: dotnet restore ./AspNetCoreMvcTemplate.slnx
+
+      - name: Build solution
+        run: dotnet build ./AspNetCoreMvcTemplate.slnx --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test ./AspNetCoreMvcTemplate.slnx --configuration Release --no-build --verbosity normal

@@ -1,47 +1,56 @@
 # AspNetCoreMvcTemplate
 
-Reusable ASP.NET Core MVC starter template with Identity, Admin area, EF Core, logging, error handling, testing, and scalable project structure.
+A clean, reusable ASP.NET Core MVC starter template built step by step.
 
-## Purpose
+## Goal
 
-This repository is a reusable starter template for building real-world ASP.NET Core MVC applications without repeating common setup from scratch in every new project.
+This project is meant to become a professional ASP.NET Core MVC template for future projects, with:
 
-The goal is to provide a clean and extensible foundation that already includes the most common application requirements, such as:
-
-- MVC shared layout and structure
-- Authentication and authorization
-- ASP.NET Core Identity with custom `ApplicationUser`
-- EF Core integration
-- Admin area for managing users, roles, and claims
-- Global error handling and status code pages
-- Logging
-- Testing setup
-- Optional integrations such as localization and external login providers
-
-This template is being built incrementally and documented as a learning + production-ready foundation for future projects.
-
-## Planned Features
-
-- ASP.NET Core MVC project structure
-- Shared layout, partials, and validation setup
-- EF Core + SQL Server
+- Controllers + Views
+- EF Core
 - ASP.NET Core Identity
-- Authentication and authorization
-- Admin area
-- Role and claim management
-- Global exception handling
-- Status code handling
-- Structured logging with Serilog
-- Feature flags
-- Localization support
-- External login providers
-- Unit tests
+- custom MVC authentication pages
+- admin foundation
+- reusable supporting services
+- clean structure for learning and reuse
+
+## Current Features
+
+- ASP.NET Core MVC app
+- EF Core + SQL Server
+- ASP.NET Core Identity with custom `ApplicationUser`
+- custom MVC account pages
+- Login
+- Register
+- Logout
+- AccessDenied
+- email confirmation flow
+- forgot password flow
+- reset password flow
+- lockout handling
+- resend confirmation email flow
+- reusable `AspNetCoreMvcTemplate.Emailing` class library
+- logging-based email sender for development/testing
+- smoke/integration tests
+- controller unit tests
+- admin bootstrap seeding for initial admin role and admin user
 
 ## Solution Structure
 
-```text
-AspNetCoreMvcTemplate
-│
-├── AspNetCoreMvcTemplate.Web
-├── AspNetCoreMvcTemplate.Tests
-└── docs
+- `src/AspNetCoreMvcTemplate.Web`
+- `src/AspNetCoreMvcTemplate.Emailing`
+- `tests/AspNetCoreMvcTemplate.Web.Tests`
+- `tests/AspNetCoreMvcTemplate.Emailing.Tests`
+
+## Quick Start
+
+### 1. Configure the database connection
+
+Set the connection string in `appsettings.json`, `appsettings.Development.json`, user secrets, or environment variables.
+
+### 2. Apply migrations
+
+Run:
+
+```bash
+dotnet ef database update --project src/AspNetCoreMvcTemplate.Web
