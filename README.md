@@ -1,3 +1,6 @@
+[![CI](https://github.com/PetkovskiM/AspNetCoreMvcTemplate/actions/workflows/ci.yml/badge.svg)](https://github.com/PetkovskiM/AspNetCoreMvcTemplate/actions/workflows/ci.yml)
+
+
 # AspNetCoreMvcTemplate
 
 A clean, reusable ASP.NET Core MVC starter template built step by step.
