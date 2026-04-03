@@ -55,7 +55,7 @@ jobs:
           path: ./artifact/web
 
       - name: Put app offline and copy files
-        shell: pwsh
+        shell: powershell
         run: |
           $deployPath = 'D:\Sites\AspNetCoreMvcTemplate\current'
           $artifactPath = Join-Path $PWD 'artifact\web'
@@ -83,7 +83,7 @@ jobs:
 
       - name: Bring app back online
         if: always()
-        shell: pwsh
+        shell: powershell
         run: |
           $appOfflinePath = 'D:\Sites\AspNetCoreMvcTemplate\current\app_offline.htm'
           if (Test-Path $appOfflinePath) {
@@ -91,7 +91,7 @@ jobs:
           }
 
       - name: Verify site responds
-        shell: pwsh
+        shell: powershell
         run: |
           Start-Sleep -Seconds 5
           $response = Invoke-WebRequest -Uri 'http://localhost:8080' -UseBasicParsing
