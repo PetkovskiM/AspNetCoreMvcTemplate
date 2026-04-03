@@ -24,13 +24,13 @@ jobs:
           global-json-file: global.json
 
       - name: Restore dependencies
-        run: dotnet restore ./AspNetCoreMvcTemplate.sln
+        run: dotnet restore ./AspNetCoreMvcTemplate.slnx
 
       - name: Build solution
-        run: dotnet build ./AspNetCoreMvcTemplate.sln --configuration Release --no-restore
+        run: dotnet build ./AspNetCoreMvcTemplate.slnx --configuration Release --no-restore
 
       - name: Run tests
-        run: dotnet test ./AspNetCoreMvcTemplate.sln --configuration Release --no-build --verbosity normal
+        run: dotnet test ./AspNetCoreMvcTemplate.slnx --configuration Release --no-build --verbosity normal
 
       - name: Publish web project
         run: dotnet publish ./src/AspNetCoreMvcTemplate.Web/AspNetCoreMvcTemplate.Web.csproj --configuration Release --no-build --output ./publish/web
