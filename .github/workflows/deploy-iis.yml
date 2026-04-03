@@ -1,0 +1,100 @@
+name: Deploy to IIS
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build, Test, Publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Restore dependencies
+        run: dotnet restore ./AspNetCoreMvcTemplate.sln
+
+      - name: Build solution
+        run: dotnet build ./AspNetCoreMvcTemplate.sln --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test ./AspNetCoreMvcTemplate.sln --configuration Release --no-build --verbosity normal
+
+      - name: Publish web project
+        run: dotnet publish ./src/AspNetCoreMvcTemplate.Web/AspNetCoreMvcTemplate.Web.csproj --configuration Release --no-build --output ./publish/web
+
+      - name: Upload published app
+        uses: actions/upload-artifact@v4
+        with:
+          name: webapp-publish
+          path: ./publish/web
+          if-no-files-found: error
+
+  deploy:
+    name: Deploy to IIS
+    needs: build
+    runs-on: [self-hosted, windows, x64, iis-template-server]
+
+    steps:
+      - name: Download published app
+        uses: actions/download-artifact@v4
+        with:
+          name: webapp-publish
+          path: ./artifact/web
+
+      - name: Put app offline and copy files
+        shell: pwsh
+        run: |
+          $deployPath = 'D:\Sites\AspNetCoreMvcTemplate\current'
+          $artifactPath = Join-Path $PWD 'artifact\web'
+          $appOfflinePath = Join-Path $deployPath 'app_offline.htm'
+
+          @"
+          <!doctype html>
+          <html>
+          <head><meta charset="utf-8"><title>Deployment in progress</title></head>
+          <body>
+            <h1>Deployment in progress</h1>
+            <p>Please try again in a moment.</p>
+          </body>
+          </html>
+          "@ | Set-Content -Path $appOfflinePath -Encoding UTF8
+
+          Start-Sleep -Seconds 5
+
+          robocopy $artifactPath $deployPath /E /R:2 /W:2 /NFL /NDL /NJH /NJS /NP
+          $exitCode = $LASTEXITCODE
+
+          if ($exitCode -ge 8) {
+            throw "Robocopy failed with exit code $exitCode."
+          }
+
+      - name: Bring app back online
+        if: always()
+        shell: pwsh
+        run: |
+          $appOfflinePath = 'D:\Sites\AspNetCoreMvcTemplate\current\app_offline.htm'
+          if (Test-Path $appOfflinePath) {
+            Remove-Item $appOfflinePath -Force
+          }
+
+      - name: Verify site responds
+        shell: pwsh
+        run: |
+          Start-Sleep -Seconds 5
+          $response = Invoke-WebRequest -Uri 'http://localhost:8080' -UseBasicParsing
+          if ($response.StatusCode -lt 200 -or $response.StatusCode -ge 400) {
+            throw "Deployment verification failed. Status code: $($response.StatusCode)"
+          }
