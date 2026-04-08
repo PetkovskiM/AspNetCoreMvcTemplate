@@ -2,6 +2,7 @@ using AspNetCoreMvcTemplate.Emailing.DependencyInjection;
 using AspNetCoreMvcTemplate.Web.Data;
 using AspNetCoreMvcTemplate.Web.Extensions;
 using AspNetCoreMvcTemplate.Web.Models.Identity;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +18,11 @@ namespace AspNetCoreMvcTemplate.Web
             builder.Services.AddControllersWithViews();
             builder.Services.AddEmailing(builder.Configuration);
             builder.Services.AddAdminBootstrap(builder.Configuration);
+            var keysPath = builder.Configuration["DataProtection:KeysPath"];
+
+            builder.Services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(keysPath))
+                .SetApplicationName("AspNetCoreMvcTemplate");
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
