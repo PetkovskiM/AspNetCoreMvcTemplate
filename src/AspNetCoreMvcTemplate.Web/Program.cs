@@ -18,7 +18,9 @@ namespace AspNetCoreMvcTemplate.Web
             builder.Services.AddControllersWithViews();
             builder.Services.AddEmailing(builder.Configuration);
             builder.Services.AddAdminBootstrap(builder.Configuration);
-            var keysPath = builder.Configuration["DataProtection:KeysPath"];
+
+            var keysPath = builder.Configuration["DataProtection:KeysPath"]
+            ?? throw new InvalidOperationException("DataProtection:KeysPath is not configured.");
 
             builder.Services.AddDataProtection()
                 .PersistKeysToFileSystem(new DirectoryInfo(keysPath))
