@@ -1,0 +1,59 @@
+# CLAUDE.md
+
+## Project
+
+ASP.NET Core 10 MVC starter template. Controllers + Views, EF Core, ASP.NET Core Identity, SQL Server, Bootstrap 5.
+
+## Solution Structure
+
+- `src/AspNetCoreMvcTemplate.Web` - Main MVC application
+- `src/AspNetCoreMvcTemplate.Emailing` - Email service class library
+- `tests/AspNetCoreMvcTemplate.Web.Tests` - xUnit + Moq tests
+- `tests/AspNetCoreMvcTemplate.Emailing.Tests` - Emailing tests
+
+## Key Architecture
+
+- **Identity**: `AddIdentity<ApplicationUser, IdentityRole>()` with custom `ApplicationUser` (has `Name` property)
+- **DbContext**: `ApplicationDbContext : IdentityDbContext<ApplicationUser>` with SQL Server
+- **Email**: `IEmailSender` abstraction in Emailing library, logging provider for dev
+- **Admin seeding**: `AdminBootstrapSeeder` creates admin role + user on startup (config-driven)
+- **Auth cookie**: 60-min expiration, sliding, HttpOnly, RequireConfirmedEmail = true
+- **Error handling**: `ErrorController` with ServerError (500) and StatusCodeError (404/403)
+- **Program.cs** uses extension methods: `AddEmailing()`, `AddAdminBootstrap()`
+
+## Completed Features
+
+- Full auth flow: Login, Register, Logout, AccessDenied, email confirmation, forgot/reset password, resend confirmation, lockout
+- Admin bootstrap seeding
+- Error handling (500, 404, 403)
+- GitHub Actions CI (build + test)
+- IIS deployment foundation (branch in progress)
+
+## Branching
+
+- `main` - stable baseline
+- `develop` - active integration branch (ahead of main)
+- Feature branches: `feature/<name>` off develop
+
+## Commands
+
+```bash
+# Build
+dotnet build ./AspNetCoreMvcTemplate.slnx --configuration Release
+
+# Test
+dotnet test ./AspNetCoreMvcTemplate.slnx --configuration Release
+
+# Apply migrations
+dotnet ef database update --project src/AspNetCoreMvcTemplate.Web
+```
+
+## Conventions
+
+See AGENTS.md for coding conventions. Key points:
+- Prefer Controllers + Views over Razor Pages
+- Keep Program.cs clean (use extension methods)
+- Simple, beginner-friendly code
+- Avoid unnecessary abstractions
+- Mention clearly whether a migration is needed
+- Run `dotnet build` after changes
