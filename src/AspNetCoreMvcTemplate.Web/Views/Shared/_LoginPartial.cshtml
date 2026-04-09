@@ -15,6 +15,12 @@
 
 @if (User.Identity?.IsAuthenticated == true)
 {
+    @if (User.IsInRole("Admin"))
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Admin</a>
+        </li>
+    }
     <li class="nav-item d-flex align-items-center me-2">
         <span class="nav-link text-dark">Hello  @(currentUser?.Name ?? User.Identity?.Name)</span>
     </li>
