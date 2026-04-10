@@ -1,0 +1,50 @@
+@using AspNetCoreMvcTemplate.Web.Areas.Admin.ViewModels
+@model DeleteRoleViewModel
+
+@{
+    ViewData["Title"] = "Delete role";
+    var canDelete = !Model.IsProtected && Model.UserCount == 0;
+}
+
+<div class="mb-4">
+    <h1 class="h3">Delete role</h1>
+</div>
+
+@if (Model.IsProtected)
+{
+    <div class="alert alert-warning">
+        This is a protected role and cannot be deleted.
+    </div>
+}
+else if (Model.UserCount > 0)
+{
+    <div class="alert alert-warning">
+        This role has <strong>@Model.UserCount</strong> user(s) assigned and cannot be deleted.
+        Remove all users from the role first.
+    </div>
+}
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <p class="mb-1"><strong>Role name:</strong> @Model.Name</p>
+                <p class="mb-1"><strong>Users assigned:</strong> @Model.UserCount</p>
+
+                @if (canDelete)
+                {
+                    <p class="text-muted mt-3">Are you sure you want to delete this role? This action cannot be undone.</p>
+                }
+            </div>
+            <div class="card-footer bg-white">
+                <form asp-area="Admin" asp-controller="Roles" asp-action="Delete" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn btn-danger" disabled="@(!canDelete)">Delete</button>
+                </form>
+                <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="Roles" asp-action="Index">Cancel</a>
+            </div>
+        </div>
+    </div>
+</div>

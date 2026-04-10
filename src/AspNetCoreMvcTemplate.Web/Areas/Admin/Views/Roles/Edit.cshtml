@@ -1,0 +1,47 @@
+@using AspNetCoreMvcTemplate.Web.Areas.Admin.ViewModels
+@model EditRoleViewModel
+
+@{
+    ViewData["Title"] = "Edit role";
+}
+
+<div class="mb-4">
+    <h1 class="h3">Edit role</h1>
+</div>
+
+@if (Model.IsProtected)
+{
+    <div class="alert alert-warning">
+        This is a protected role and cannot be renamed.
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <form asp-area="Admin" asp-controller="Roles" asp-action="Edit" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="IsProtected" />
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" disabled="@Model.IsProtected" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" disabled="@Model.IsProtected">Save</button>
+                        <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="Roles" asp-action="Index">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
