@@ -1,0 +1,97 @@
+@using AspNetCoreMvcTemplate.Web.Areas.Admin.ViewModels
+@model EditUserViewModel
+
+@{
+    ViewData["Title"] = "Edit user";
+}
+
+<div class="mb-4">
+    <h1 class="h3">Edit user</h1>
+</div>
+
+@if (Model.IsProtected)
+{
+    <div class="alert alert-warning">
+        This is the bootstrap admin user. Some fields and role assignments are protected.
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">User details</div>
+            <div class="card-body">
+                <form asp-area="Admin" asp-controller="Users" asp-action="Edit" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="IsProtected" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="text" class="form-control" value="@Model.Email" disabled />
+                        <input type="hidden" asp-for="Email" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input asp-for="EmailConfirmed" class="form-check-input"
+                               disabled="@(Model.IsProtected && Model.EmailConfirmed)" />
+                        <label asp-for="EmailConfirmed" class="form-check-label"></label>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input asp-for="LockoutEnabled" class="form-check-input"
+                               disabled="@(Model.IsProtected && !Model.LockoutEnabled)" />
+                        <label asp-for="LockoutEnabled" class="form-check-label"></label>
+                    </div>
+
+                    @if (Model.RoleAssignments.Any())
+                    {
+                        <hr />
+                        <h6 class="mb-3">Role assignments</h6>
+                        @for (var i = 0; i < Model.RoleAssignments.Count; i++)
+                        {
+                            var isAdminRole = string.Equals(Model.RoleAssignments[i].RoleName,
+                                "Admin", StringComparison.OrdinalIgnoreCase);
+                            var isDisabled = Model.IsProtected && isAdminRole && Model.RoleAssignments[i].IsAssigned;
+
+                            <input type="hidden" name="RoleAssignments[@i].RoleName"
+                                   value="@Model.RoleAssignments[i].RoleName" />
+                            <div class="mb-2 form-check">
+                                <input type="checkbox"
+                                       class="form-check-input"
+                                       id="RoleAssignments_@(i)__IsAssigned"
+                                       name="RoleAssignments[@i].IsAssigned"
+                                       value="true"
+                                       checked="@(Model.RoleAssignments[i].IsAssigned ? "checked" : null)"
+                                       disabled="@isDisabled" />
+                                @if (isDisabled)
+                                {
+                                    <input type="hidden" name="RoleAssignments[@i].IsAssigned" value="true" />
+                                }
+                                <label class="form-check-label" for="RoleAssignments_@(i)__IsAssigned">
+                                    @Model.RoleAssignments[i].RoleName
+                                </label>
+                            </div>
+                        }
+                    }
+
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="Users" asp-action="Index">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
