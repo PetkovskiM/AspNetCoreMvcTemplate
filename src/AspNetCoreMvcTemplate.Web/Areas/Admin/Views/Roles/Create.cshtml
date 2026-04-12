@@ -1,0 +1,37 @@
+@using AspNetCoreMvcTemplate.Web.Areas.Admin.ViewModels
+@model CreateRoleViewModel
+
+@{
+    ViewData["Title"] = "New role";
+}
+
+<div class="mb-4">
+    <h1 class="h3">New role</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <form asp-area="Admin" asp-controller="Roles" asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" autofocus />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Create</button>
+                        <a class="btn btn-outline-secondary" asp-area="Admin" asp-controller="Roles" asp-action="Index">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
