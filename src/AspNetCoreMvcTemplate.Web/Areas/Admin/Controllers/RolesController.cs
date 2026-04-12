@@ -34,6 +34,7 @@ namespace AspNetCoreMvcTemplate.Web.Areas.Admin.Controllers
 
             foreach (var role in roles)
             {
+                // ova pravi N+1 queries. Moze da se optimizira ako e potrebno
                 var usersInRole = await userManager.GetUsersInRoleAsync(role.Name ?? string.Empty);
                 items.Add(new RoleListItemViewModel
                 {
@@ -67,7 +68,7 @@ namespace AspNetCoreMvcTemplate.Web.Areas.Admin.Controllers
                 return View(model);
             }
 
-            var result = await roleManager.CreateAsync(new IdentityRole(model.Name));
+            var result = await roleManager.CreateAsync(new IdentityRole(model.Name.Trim()));
             if (!result.Succeeded)
             {
                 foreach (var error in result.Errors)
@@ -125,8 +126,10 @@ namespace AspNetCoreMvcTemplate.Web.Areas.Admin.Controllers
                 return View(model);
             }
 
-            role.Name = model.Name;
+            role.Name = model.Name.Trim();
             var result = await roleManager.UpdateAsync(role);
+
+            // Pri edit ako imeto e vekje postoecko, RoleManager vrakja username is already taken, nema potreba da se proveruva posebno
             if (!result.Succeeded)
             {
                 foreach (var error in result.Errors)
@@ -210,6 +213,7 @@ namespace AspNetCoreMvcTemplate.Web.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // Ako ponatamu e potrebno da se dodade podrshka za povekje zashhtiteni roli moze da se dodade property List<string> ProtectedRoles
         private bool IsProtectedRole(string? roleName)
         {
             if (string.IsNullOrEmpty(roleName))
