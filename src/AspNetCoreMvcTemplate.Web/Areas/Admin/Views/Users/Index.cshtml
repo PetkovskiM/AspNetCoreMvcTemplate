@@ -1,0 +1,77 @@
+@using AspNetCoreMvcTemplate.Web.Areas.Admin.ViewModels
+@model IEnumerable<UserListItemViewModel>
+
+@{
+    ViewData["Title"] = "Users";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">Users</h1>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Roles</th>
+                    <th scope="col" class="text-center">Email confirmed</th>
+                    <th scope="col" class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model == null || !Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">No users found.</td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var user in Model)
+                    {
+                        <tr>
+                            <td>
+                                @user.Name
+                                @if (user.IsProtected)
+                                {
+                                    <span class="badge text-bg-secondary ms-2">Protected</span>
+                                }
+                            </td>
+                            <td>@user.Email</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(user.Roles))
+                                {
+                                    foreach (var role in user.Roles.Split(", "))
+                                    {
+                                        <span class="badge text-bg-info me-1">@role</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (user.EmailConfirmed)
+                                {
+                                    <span class="badge text-bg-success">Yes</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-warning">No</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-primary"
+                                   asp-area="Admin" asp-controller="Users" asp-action="Edit" asp-route-id="@user.Id">Edit</a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
