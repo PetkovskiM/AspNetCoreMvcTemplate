@@ -22,7 +22,7 @@
                 </tr>
             </thead>
             <tbody>
-                @if (!Model.Any())
+                @if (Model == null || !Model.Any())
                 {
                     <tr>
                         <td colspan="5" class="text-center text-muted py-4">No users found.</td>

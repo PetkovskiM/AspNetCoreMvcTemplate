@@ -61,6 +61,7 @@
                                 "Admin", StringComparison.OrdinalIgnoreCase);
                             var isDisabled = Model.IsProtected && isAdminRole && Model.RoleAssignments[i].IsAssigned;
 
+                            // Ni trebaat hidden polinjata zatoa sto samo selektiranite ke se pratat vo response, a ne selektiranite ke se ignoriraat. Isto ni treba for za indexiranje da moze da se povrzat RoleName so IsAssigned.
                             <input type="hidden" name="RoleAssignments[@i].RoleName"
                                    value="@Model.RoleAssignments[i].RoleName" />
                             <div class="mb-2 form-check">
