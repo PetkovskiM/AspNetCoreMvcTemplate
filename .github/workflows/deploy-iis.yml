@@ -94,6 +94,12 @@ jobs:
             Remove-Item $appOfflinePath -Force
           }
 
+      - name: Recycle app pool
+        shell: powershell
+        run: |
+          Import-Module WebAdministration
+          Restart-WebAppPool -Name 'AspNetCoreMvcTemplate'
+
       - name: Verify site responds
         shell: powershell
         run: |
