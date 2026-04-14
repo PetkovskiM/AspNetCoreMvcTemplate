@@ -17,17 +17,28 @@ ASP.NET Core 10 MVC starter template. Controllers + Views, EF Core, ASP.NET Core
 - **DbContext**: `ApplicationDbContext : IdentityDbContext<ApplicationUser>` with SQL Server
 - **Email**: `IEmailSender` abstraction in Emailing library, logging provider for dev
 - **Admin seeding**: `AdminBootstrapSeeder` creates admin role + user on startup (config-driven)
+- **Admin area**: MVC Area at `Areas/Admin/` with Dashboard, Roles CRUD, Users management
+- **Role management**: RolesController — create, rename, delete roles. Bootstrap admin role is protected.
+- **User management**: UsersController — edit user (Name, EmailConfirmed, LockoutEnabled), assign/unassign roles via checkbox list. Bootstrap admin user is protected.
 - **Auth cookie**: 60-min expiration, sliding, HttpOnly, RequireConfirmedEmail = true
 - **Error handling**: `ErrorController` with ServerError (500) and StatusCodeError (404/403)
-- **Program.cs** uses extension methods: `AddEmailing()`, `AddAdminBootstrap()`
+- **Logging**: Serilog (Console + File sinks), configured via `appsettings.json`, request logging middleware
+- **Health checks**: `/health` endpoint with EF Core database connectivity check
+- **Program.cs** uses extension methods: `AddEmailing()`, `AddAdminBootstrap()`, `AddSerilogLogging()`
 
 ## Completed Features
 
 - Full auth flow: Login, Register, Logout, AccessDenied, email confirmation, forgot/reset password, resend confirmation, lockout
 - Admin bootstrap seeding
+- Admin area with Dashboard, Roles CRUD, Users management, role assignment
+- Bootstrap admin role/user protection (cannot delete/rename admin role, cannot lock out admin user)
 - Error handling (500, 404, 403)
+- Serilog structured logging (Console + File with daily rolling)
+- Health check endpoint at `/health`
 - GitHub Actions CI (build + test)
-- IIS deployment foundation (branch in progress)
+- GitHub Actions CD (IIS deployment to staging)
+- Data protection keys persisted to file system
+- 43+ unit and integration tests
 
 ## Branching
 

@@ -5,6 +5,7 @@ using AspNetCoreMvcTemplate.Web.Models.Identity;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace AspNetCoreMvcTemplate.Web
 {
@@ -15,9 +16,12 @@ namespace AspNetCoreMvcTemplate.Web
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.AddSerilogLogging();
             builder.Services.AddControllersWithViews();
             builder.Services.AddEmailing(builder.Configuration);
             builder.Services.AddAdminBootstrap(builder.Configuration);
+            builder.Services.AddHealthChecks()
+                .AddDbContextCheck<ApplicationDbContext>();
 
             var keysPath = builder.Configuration["DataProtection:KeysPath"]
             ?? throw new InvalidOperationException("DataProtection:KeysPath is not configured.");
@@ -70,6 +74,8 @@ namespace AspNetCoreMvcTemplate.Web
 
             app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
+            app.UseSerilogRequestLogging();
+
             app.UseHttpsRedirection();
             app.UseRouting();
 
@@ -84,6 +90,7 @@ namespace AspNetCoreMvcTemplate.Web
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}")
                 .WithStaticAssets();
+            app.MapHealthChecks("/health");
 
             await app.RunAsync();
         }
