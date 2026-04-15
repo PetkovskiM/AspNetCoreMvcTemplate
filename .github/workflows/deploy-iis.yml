@@ -46,6 +46,7 @@ jobs:
     name: Deploy to IIS
     needs: build
     runs-on: [self-hosted, windows, x64, iis-template-server]
+    environment: staging
 
     steps:
       - name: Download published app
@@ -85,6 +86,22 @@ jobs:
 
           $global:LASTEXITCODE = 0
 
+      - name: Inject environment secrets into web.config
+        shell: powershell
+        env:
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_BOOTSTRAP_PASSWORD }}
+        run: |
+          $webConfigPath = 'D:\Sites\AspNetCoreMvcTemplate\current\web.config'
+          [xml]$xml = Get-Content $webConfigPath
+          $envVars = $xml.configuration.location.'system.webServer'.aspNetCore.environmentVariables
+
+          $passwordVar = $xml.CreateElement('environmentVariable')
+          $passwordVar.SetAttribute('name', 'AdminBootstrap__Password')
+          $passwordVar.SetAttribute('value', $env:ADMIN_PASSWORD)
+          $envVars.AppendChild($passwordVar) | Out-Null
+
+          $xml.Save($webConfigPath)
+
       - name: Bring app back online
         if: always()
         shell: powershell
@@ -97,8 +114,7 @@ jobs:
       - name: Recycle app pool
         shell: powershell
         run: |
-          Import-Module WebAdministration
-          Restart-WebAppPool -Name 'AspNetCoreMvcTemplatePool'
+          & "$env:SystemRoot\System32\inetsrv\appcmd.exe" recycle apppool /apppool.name:'AspNetCoreMvcTemplatePool'
 
       - name: Verify site responds
         shell: powershell
