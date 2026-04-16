@@ -21,7 +21,7 @@ ASP.NET Core 10 MVC starter template. Controllers + Views, EF Core, ASP.NET Core
 - **Role management**: RolesController — create, rename, delete roles. Bootstrap admin role is protected.
 - **User management**: UsersController — edit user (Name, EmailConfirmed, LockoutEnabled), assign/unassign roles via checkbox list. Bootstrap admin user is protected.
 - **Auth cookie**: 60-min expiration, sliding, HttpOnly, RequireConfirmedEmail = true
-- **Authorization policies**: `Authorization/` folder with `AuthorizationPolicies` constants (`AdminOnly`, `RequireEmailConfirmed`, `ActiveUser`). Admin controllers use `[Authorize(Policy = AuthorizationPolicies.AdminOnly)]`. Custom `ActiveUserRequirement` + `ActiveUserAuthorizationHandler` demonstrates the requirement/handler pattern with `UserManager` injection.
+- **Authorization policies**: `Authorization/` folder with `AuthorizationPolicies` constants (`AdminOnly`, `ActiveUser`). Admin controllers use `[Authorize(Policy = AuthorizationPolicies.AdminOnly)]`. Custom `ActiveUserRequirement` + `ActiveUserAuthorizationHandler` demonstrates the requirement/handler pattern with `UserManager` injection.
 - **Error handling**: `ErrorController` with ServerError (500) and StatusCodeError (404/403)
 - **Logging**: Serilog (Console + File sinks), configured via `appsettings.json`, request logging middleware
 - **Health checks**: `/health` endpoint with EF Core database connectivity check
