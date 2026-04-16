@@ -52,6 +52,8 @@ namespace AspNetCoreMvcTemplate.Web
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
+            builder.Services.AddAuthorizationPolicies();
+
             builder.Services.ConfigureApplicationCookie(options =>
             {
                 options.LoginPath = "/Account/Login";
