@@ -1,4 +1,5 @@
 using AspNetCoreMvcTemplate.Web.Areas.Admin.ViewModels;
+using AspNetCoreMvcTemplate.Web.Authorization;
 using AspNetCoreMvcTemplate.Web.Models.Identity;
 using AspNetCoreMvcTemplate.Web.Options;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +10,7 @@ using Microsoft.Extensions.Options;
 namespace AspNetCoreMvcTemplate.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
     [AutoValidateAntiforgeryToken]
     public class RolesController : Controller
     {
