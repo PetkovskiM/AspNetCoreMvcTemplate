@@ -5,6 +5,7 @@ namespace AspNetCoreMvcTemplate.Web.Authorization
     public static class AuthorizationPolicies
     {
         public const string AdminOnly = "AdminOnly";
+        public const string RequireEmailConfirmed = "RequireEmailConfirmed";
         public const string ActiveUser = "ActiveUser";
     }
 }

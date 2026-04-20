@@ -21,7 +21,8 @@ ASP.NET Core 10 MVC starter template. Controllers + Views, EF Core, ASP.NET Core
 - **Role management**: RolesController — create, rename, delete roles. Bootstrap admin role is protected.
 - **User management**: UsersController — edit user (Name, EmailConfirmed, LockoutEnabled), assign/unassign roles via checkbox list. Bootstrap admin user is protected.
 - **Auth cookie**: 60-min expiration, sliding, HttpOnly, RequireConfirmedEmail = true
-- **Authorization policies**: `Authorization/` folder with `AuthorizationPolicies` constants (`AdminOnly`, `ActiveUser`). Admin controllers use `[Authorize(Policy = AuthorizationPolicies.AdminOnly)]`. Custom `ActiveUserRequirement` + `ActiveUserAuthorizationHandler` demonstrates the requirement/handler pattern with `UserManager` injection.
+- **Authorization policies**: `Authorization/` folder with `AuthorizationPolicies` constants (`AdminOnly`, `RequireEmailConfirmed`, `ActiveUser`). Admin controllers use `[Authorize(Policy = AuthorizationPolicies.AdminOnly)]`. Custom `ActiveUserRequirement` + `ActiveUserAuthorizationHandler` demonstrates the requirement/handler pattern with `UserManager` injection.
+- **Claims pipeline**: `ApplicationUserClaimsPrincipalFactory` overrides `UserClaimsPrincipalFactory<ApplicationUser, IdentityRole>` to emit custom claims at sign-in (`email_verified` from `EmailConfirmed`, `name` from `ApplicationUser.Name`). Registered via `.AddClaimsPrincipalFactory<>()` in Identity setup. The `RequireEmailConfirmed` policy consumes the `email_verified` claim.
 - **Error handling**: `ErrorController` with ServerError (500) and StatusCodeError (404/403)
 - **Logging**: Serilog (Console + File sinks), configured via `appsettings.json`, request logging middleware
 - **Health checks**: `/health` endpoint with EF Core database connectivity check
@@ -34,13 +35,14 @@ ASP.NET Core 10 MVC starter template. Controllers + Views, EF Core, ASP.NET Core
 - Admin area with Dashboard, Roles CRUD, Users management, role assignment
 - Bootstrap admin role/user protection (cannot delete/rename admin role, cannot lock out admin user)
 - Policy-based authorization (named policies + custom requirement/handler)
+- Custom claims pipeline (`UserClaimsPrincipalFactory` emits `email_verified`, `name`)
 - Error handling (500, 404, 403)
 - Serilog structured logging (Console + File with daily rolling)
 - Health check endpoint at `/health`
 - GitHub Actions CI (build + test)
 - GitHub Actions CD (IIS deployment to staging)
 - Data protection keys persisted to file system
-- 49+ unit and integration tests
+- 53+ unit and integration tests
 
 ## Branching
 

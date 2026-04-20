@@ -15,6 +15,12 @@ namespace AspNetCoreMvcTemplate.Web.Extensions
                 options.AddPolicy(AuthorizationPolicies.AdminOnly, policy =>
                     policy.RequireRole(Roles.Admin));
 
+                // Claims based policy. email_verified claim se zima od ApplicationUserClaimsPrincipalFactory.
+                options.AddPolicy(AuthorizationPolicies.RequireEmailConfirmed, policy =>
+                    policy.RequireAuthenticatedUser()
+                          .RequireAssertion(ctx =>
+                              ctx.User.HasClaim(c => c.Type == "email_verified" && c.Value == "true")));
+
                 // Custom requirement - logikata e vo ActiveUserAuthorizationHandler.
                 options.AddPolicy(AuthorizationPolicies.ActiveUser, policy =>
                     policy.Requirements.Add(new ActiveUserRequirement()));

@@ -1,4 +1,5 @@
 using AspNetCoreMvcTemplate.Emailing.DependencyInjection;
+using AspNetCoreMvcTemplate.Web.Authorization;
 using AspNetCoreMvcTemplate.Web.Data;
 using AspNetCoreMvcTemplate.Web.Extensions;
 using AspNetCoreMvcTemplate.Web.Models.Identity;
@@ -50,7 +51,8 @@ namespace AspNetCoreMvcTemplate.Web
                 options.User.RequireUniqueEmail = true;
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddDefaultTokenProviders();
+            .AddDefaultTokenProviders()
+            .AddClaimsPrincipalFactory<ApplicationUserClaimsPrincipalFactory>();
 
             builder.Services.AddAuthorizationPolicies();
 
