@@ -90,15 +90,34 @@ jobs:
         shell: powershell
         env:
           ADMIN_PASSWORD: ${{ secrets.ADMIN_BOOTSTRAP_PASSWORD }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          MICROSOFT_CLIENT_ID: ${{ secrets.MICROSOFT_CLIENT_ID }}
+          MICROSOFT_CLIENT_SECRET: ${{ secrets.MICROSOFT_CLIENT_SECRET }}
+          FACEBOOK_APP_ID: ${{ secrets.FACEBOOK_APP_ID }}
+          FACEBOOK_APP_SECRET: ${{ secrets.FACEBOOK_APP_SECRET }}
         run: |
           $webConfigPath = 'D:\Sites\AspNetCoreMvcTemplate\current\web.config'
           [xml]$xml = Get-Content $webConfigPath
           $envVars = $xml.configuration.location.'system.webServer'.aspNetCore.environmentVariables
 
-          $passwordVar = $xml.CreateElement('environmentVariable')
-          $passwordVar.SetAttribute('name', 'AdminBootstrap__Password')
-          $passwordVar.SetAttribute('value', $env:ADMIN_PASSWORD)
-          $envVars.AppendChild($passwordVar) | Out-Null
+          # Helper: dodava environmentVariable samo ako vrednosta ne e prazna.
+          # Dozvoluva pipeline da rotira tajni bez crash na deploymentot.
+          function Add-EnvVarIfPresent([string]$name, [string]$value) {
+            if ([string]::IsNullOrWhiteSpace($value)) { return }
+            $node = $xml.CreateElement('environmentVariable')
+            $node.SetAttribute('name', $name)
+            $node.SetAttribute('value', $value)
+            $envVars.AppendChild($node) | Out-Null
+          }
+
+          Add-EnvVarIfPresent 'AdminBootstrap__Password'            $env:ADMIN_PASSWORD
+          Add-EnvVarIfPresent 'Authentication__Google__ClientId'    $env:GOOGLE_CLIENT_ID
+          Add-EnvVarIfPresent 'Authentication__Google__ClientSecret' $env:GOOGLE_CLIENT_SECRET
+          Add-EnvVarIfPresent 'Authentication__Microsoft__ClientId' $env:MICROSOFT_CLIENT_ID
+          Add-EnvVarIfPresent 'Authentication__Microsoft__ClientSecret' $env:MICROSOFT_CLIENT_SECRET
+          Add-EnvVarIfPresent 'Authentication__Facebook__AppId'     $env:FACEBOOK_APP_ID
+          Add-EnvVarIfPresent 'Authentication__Facebook__AppSecret' $env:FACEBOOK_APP_SECRET
 
           $xml.Save($webConfigPath)
 

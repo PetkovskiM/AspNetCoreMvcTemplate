@@ -56,6 +56,8 @@ namespace AspNetCoreMvcTemplate.Web
 
             builder.Services.AddAuthorizationPolicies();
 
+            builder.Services.AddExternalAuthentication(builder.Configuration);
+
             builder.Services.ConfigureApplicationCookie(options =>
             {
                 options.LoginPath = "/Account/Login";

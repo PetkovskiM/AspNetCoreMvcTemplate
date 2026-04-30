@@ -23,10 +23,11 @@ ASP.NET Core 10 MVC starter template. Controllers + Views, EF Core, ASP.NET Core
 - **Auth cookie**: 60-min expiration, sliding, HttpOnly, RequireConfirmedEmail = true
 - **Authorization policies**: `Authorization/` folder with `AuthorizationPolicies` constants (`AdminOnly`, `RequireEmailConfirmed`, `ActiveUser`). Admin controllers use `[Authorize(Policy = AuthorizationPolicies.AdminOnly)]`. Custom `ActiveUserRequirement` + `ActiveUserAuthorizationHandler` demonstrates the requirement/handler pattern with `UserManager` injection.
 - **Claims pipeline**: `ApplicationUserClaimsPrincipalFactory` overrides `UserClaimsPrincipalFactory<ApplicationUser, IdentityRole>` to emit custom claims at sign-in (`email_verified` from `EmailConfirmed`, `name` from `ApplicationUser.Name`). Registered via `.AddClaimsPrincipalFactory<>()` in Identity setup. The `RequireEmailConfirmed` policy consumes the `email_verified` claim.
+- **External login providers**: `AddExternalAuthentication()` extension in `Extensions/AuthenticationServiceCollectionExtensions.cs` conditionally registers Google, Microsoft, and Facebook OAuth based on configuration (Google/Microsoft use `ClientId`/`ClientSecret`; Facebook uses `AppId`/`AppSecret` matching Meta's terminology). Both keys must be present or the provider is skipped. If ClientId is empty, the provider is not added and the Login page button does not render - same code path works across dev/staging/prod. Dev config via `dotnet user-secrets`; staging config via GitHub Environment Secrets injected into `web.config` by the CD pipeline. `AccountController.ExternalLogin` / `ExternalLoginCallback` / `ExternalLoginConfirmation` handle the OAuth flow: already-linked users sign in, new users with provider-supplied email get a local account auto-created with `EmailConfirmed = true` (skipping our own email confirmation flow). Claims interop: providers emit the OIDC-standard `email_verified` claim that `ApplicationUserClaimsPrincipalFactory` also emits for local users - same name, same semantics, so `RequireEmailConfirmed` policy works unchanged for both sign-in paths.
 - **Error handling**: `ErrorController` with ServerError (500) and StatusCodeError (404/403)
 - **Logging**: Serilog (Console + File sinks), configured via `appsettings.json`, request logging middleware
 - **Health checks**: `/health` endpoint with EF Core database connectivity check
-- **Program.cs** uses extension methods: `AddEmailing()`, `AddAdminBootstrap()`, `AddSerilogLogging()`, `AddAuthorizationPolicies()`
+- **Program.cs** uses extension methods: `AddEmailing()`, `AddAdminBootstrap()`, `AddSerilogLogging()`, `AddAuthorizationPolicies()`, `AddExternalAuthentication()`
 
 ## Completed Features
 
@@ -36,6 +37,7 @@ ASP.NET Core 10 MVC starter template. Controllers + Views, EF Core, ASP.NET Core
 - Bootstrap admin role/user protection (cannot delete/rename admin role, cannot lock out admin user)
 - Policy-based authorization (named policies + custom requirement/handler)
 - Custom claims pipeline (`UserClaimsPrincipalFactory` emits `email_verified`, `name`)
+- External login providers (Google, Microsoft, Facebook) with conditional registration + auto-create local user on first sign-in
 - Error handling (500, 404, 403)
 - Serilog structured logging (Console + File with daily rolling)
 - Health check endpoint at `/health`
