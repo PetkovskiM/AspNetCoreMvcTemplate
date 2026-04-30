@@ -5,6 +5,7 @@ using AspNetCoreMvcTemplate.Web.ViewModels.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AspNetCoreMvcTemplate.Web.Controllers
 {
@@ -215,6 +216,185 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
         public async Task<IActionResult> Logout()
         {
             await signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Home");
+        }
+
+        // Start na OAuth challenge-ot. ASP.NET Core go redirektira browser-ot do
+        // Google/Microsoft, kade userot se avtentikuva. Potoa provajderot go
+        // redirektira nazad do ExternalLoginCallback.
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult ExternalLogin(string provider, string? returnUrl = null)
+        {
+            if (string.IsNullOrWhiteSpace(provider))
+            {
+                return BadRequest("Provider not specified.");
+            }
+
+            var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { returnUrl });
+            var properties = signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return Challenge(properties, provider);
+        }
+
+        // Callback koj go povikuva provajderot po uspeshen login.
+        // Tri sluchai:
+        //  1. User-ot vekje go linkuval ovoj provajder -> sign-in
+        //  2. Nov user, provajderot prakja email claim -> avtomatski kreiraj lokalen user
+        //     so EmailConfirmed = true (provajderot go potvrdil emailot)
+        //  3. Nov user bez email claim -> redirektiraj na formata za potvrda
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> ExternalLoginCallback(string? returnUrl = null, string? remoteError = null)
+        {
+            if (remoteError != null)
+            {
+                // Detalen error e zapishan samo vo log; korisnikot dobiva generichka poraka
+                // za da ne se leakne interna informacija od provajderot vo UI.
+                logger.LogWarning("External provider returned error: {Error}", remoteError);
+                ModelState.AddModelError(string.Empty, "External login failed. Please try again.");
+                return View(nameof(Login), new LoginViewModel { ReturnUrl = returnUrl });
+            }
+
+            var info = await signInManager.GetExternalLoginInfoAsync();
+            if (info is null)
+            {
+                logger.LogWarning("GetExternalLoginInfoAsync returned null; external login context lost.");
+                return RedirectToAction(nameof(Login), new { returnUrl });
+            }
+
+            // Sluchai 1: vekje linkuval - sign in.
+            // bypassTwoFactor: true e default-ot na Microsoft Identity scaffoldot. Vo
+            // ovoj template 2FA ne e implementiran, taka shto vrednosta nema efekt.
+            // Koga kje se dodade 2FA branch, treba da se prefrli na false i da se
+            // dodade LoginWith2fa action za da se zavrshi 2FA flow-ot.
+            var signInResult = await signInManager.ExternalLoginSignInAsync(
+                info.LoginProvider,
+                info.ProviderKey,
+                isPersistent: false,
+                bypassTwoFactor: true);
+
+            if (signInResult.Succeeded)
+            {
+                logger.LogInformation(
+                    "User signed in via {Provider} (ProviderKey: {ProviderKey}).",
+                    info.LoginProvider,
+                    info.ProviderKey);
+                return RedirectToLocal(returnUrl);
+            }
+
+            if (signInResult.IsLockedOut)
+            {
+                return RedirectToAction(nameof(Lockout));
+            }
+
+            // Sluchai 2 ili 3: prv pat login so ovoj provajder za ovoj user.
+            var email = info.Principal.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+
+            if (string.IsNullOrEmpty(email))
+            {
+                // Sluchaj 3: provajderot ne dal email - pokazi forma za vnesuvanje
+                var model = new ExternalLoginConfirmationViewModel
+                {
+                    ReturnUrl = returnUrl,
+                    ProviderDisplayName = info.ProviderDisplayName
+                };
+                return View(nameof(ExternalLoginConfirmation), model);
+            }
+
+            // Sluchaj 2: imame email od provajderot, avtomatski kreiraj user.
+            return await CreateExternalUserAndSignInAsync(info, email, returnUrl);
+        }
+
+        // Fallback za Sluchaj 3 - userot rachno vnese email.
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> ExternalLoginConfirmation(ExternalLoginConfirmationViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var info = await signInManager.GetExternalLoginInfoAsync();
+            if (info is null)
+            {
+                logger.LogWarning("ExternalLoginConfirmation: external login info was lost.");
+                return RedirectToAction(nameof(Login));
+            }
+
+            return await CreateExternalUserAndSignInAsync(info, model.Email, model.ReturnUrl);
+        }
+
+        private async Task<IActionResult> CreateExternalUserAndSignInAsync(
+            ExternalLoginInfo info,
+            string email,
+            string? returnUrl)
+        {
+            var existingUser = await userManager.FindByEmailAsync(email);
+            if (existingUser is not null)
+            {
+                // Postoi lokalen user so ovoj email no ne e linkuvan so ovoj provajder.
+                // Za bezbednost ne dozvoluvame avtomatsko linkuvanje - userot mora
+                // prvo da se najavi so password pa da go linkuva od profilot.
+                logger.LogInformation(
+                    "External login with existing email {Email} but no link. User must link from profile.",
+                    email);
+
+                ModelState.AddModelError(string.Empty,
+                    "An account with this email already exists. Please sign in with your password first and link the external provider from your profile.");
+                return View(nameof(Login), new LoginViewModel { Email = email, ReturnUrl = returnUrl });
+            }
+
+            // name claim e korisno da se zadrzi ako provajderot go dal
+            var name =
+            info.Principal.FindFirst(ClaimTypes.GivenName)?.Value
+            ?? info.Principal.FindFirst(ClaimTypes.Name)?.Value
+            ?? email;
+
+            var newUser = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                Name = name,
+                EmailConfirmed = true // provajderot ja potvrdil email adresata
+            };
+
+            var createResult = await userManager.CreateAsync(newUser);
+            if (!createResult.Succeeded)
+            {
+                foreach (var error in createResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                return View(nameof(Login), new LoginViewModel { Email = email, ReturnUrl = returnUrl });
+            }
+
+            var linkResult = await userManager.AddLoginAsync(newUser, info);
+            if (!linkResult.Succeeded)
+            {
+                logger.LogError(
+                    "Failed to link external login for {Email}: {Errors}",
+                    email,
+                    string.Join("; ", linkResult.Errors.Select(e => e.Description)));
+
+                foreach (var error in linkResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                return View(nameof(Login), new LoginViewModel { Email = email, ReturnUrl = returnUrl });
+            }
+
+            await signInManager.SignInAsync(newUser, isPersistent: false);
+            logger.LogInformation("Created local user {Email} from external provider {Provider}.", email, info.LoginProvider);
+            return RedirectToLocal(returnUrl);
+        }
+
+        private IActionResult RedirectToLocal(string? returnUrl)
+        {
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
             return RedirectToAction("Index", "Home");
         }
 
