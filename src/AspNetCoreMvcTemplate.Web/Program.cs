@@ -34,6 +34,7 @@ namespace AspNetCoreMvcTemplate.Web
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+            // So ova se dodava authentication services, user manager, sign-in manager, role manager, identity cookies...
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.Password.RequiredLength = 6;
@@ -56,6 +57,7 @@ namespace AspNetCoreMvcTemplate.Web
 
             builder.Services.AddAuthorizationPolicies();
 
+            //var authBuilder = services.AddAuthentication() ova samo extends the existing authentication setup, ne go pregazuva.
             builder.Services.AddExternalAuthentication(builder.Configuration);
 
             builder.Services.ConfigureApplicationCookie(options =>

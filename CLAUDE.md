@@ -20,6 +20,7 @@ ASP.NET Core 10 MVC starter template. Controllers + Views, EF Core, ASP.NET Core
 - **Admin area**: MVC Area at `Areas/Admin/` with Dashboard, Roles CRUD, Users management
 - **Role management**: RolesController — create, rename, delete roles. Bootstrap admin role is protected.
 - **User management**: UsersController — edit user (Name, EmailConfirmed, LockoutEnabled), assign/unassign roles via checkbox list. Bootstrap admin user is protected.
+- **User profile**: `ProfileController` (self-service, `[Authorize]`) — view profile, change name / password / email, set password (for users without one — e.g. external-only sign-up), manage linked external logins. Email change uses a confirmation token sent to the *new* address; on confirmation, both `Email` and `UserName` are updated together so password sign-in still works. After mutating actions `signInManager.RefreshSignInAsync(user)` is called so the cookie's claims (`name`, `email_verified`) re-emit fresh values without forcing a full re-login. Linking flow: `LinkLogin` kicks off OAuth challenge tagged with the user id; `LinkLoginCallback` reads the info via `GetExternalLoginInfoAsync(userId)` and calls `userManager.AddLoginAsync`. Unlinking has an orphan-prevention guard: refuses to remove the only sign-in method (no password AND no other external logins).
 - **Auth cookie**: 60-min expiration, sliding, HttpOnly, RequireConfirmedEmail = true
 - **Authorization policies**: `Authorization/` folder with `AuthorizationPolicies` constants (`AdminOnly`, `RequireEmailConfirmed`, `ActiveUser`). Admin controllers use `[Authorize(Policy = AuthorizationPolicies.AdminOnly)]`. Custom `ActiveUserRequirement` + `ActiveUserAuthorizationHandler` demonstrates the requirement/handler pattern with `UserManager` injection.
 - **Claims pipeline**: `ApplicationUserClaimsPrincipalFactory` overrides `UserClaimsPrincipalFactory<ApplicationUser, IdentityRole>` to emit custom claims at sign-in (`email_verified` from `EmailConfirmed`, `name` from `ApplicationUser.Name`). Registered via `.AddClaimsPrincipalFactory<>()` in Identity setup. The `RequireEmailConfirmed` policy consumes the `email_verified` claim.
@@ -38,13 +39,14 @@ ASP.NET Core 10 MVC starter template. Controllers + Views, EF Core, ASP.NET Core
 - Policy-based authorization (named policies + custom requirement/handler)
 - Custom claims pipeline (`UserClaimsPrincipalFactory` emits `email_verified`, `name`)
 - External login providers (Google, Microsoft, Facebook) with conditional registration + auto-create local user on first sign-in
+- Self-service user profile: change name / password / email (with confirmation), set password for external-only users, link/unlink external providers (with orphan-prevention guard)
 - Error handling (500, 404, 403)
 - Serilog structured logging (Console + File with daily rolling)
 - Health check endpoint at `/health`
 - GitHub Actions CI (build + test)
 - GitHub Actions CD (IIS deployment to staging)
 - Data protection keys persisted to file system
-- 53+ unit and integration tests
+- 66+ unit and integration tests
 
 ## Branching
 
