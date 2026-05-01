@@ -1,11 +1,14 @@
+using Microsoft.AspNetCore.Authentication;
+
 namespace AspNetCoreMvcTemplate.Web.Extensions
 {
-    // Registrira eksterni login provajderi (Google, Microsoft) samo ako e
-    // postaven ClientId vo konfiguracijata. Na razvoj ClientId doaga od user-secrets,
-    // na staging/prod doaga od environment variable (injektiran od CD pipeline vo web.config).
+    // Registrira eksterni login provajderi (Google, Microsoft, Facebook) samo ako se
+    // postaveni i ClientId i ClientSecret (resp. AppId / AppSecret za Facebook) vo
+    // konfiguracijata. Na razvoj idat od user-secrets, na staging/prod od environment
+    // variable injektirani od CD pipeline vo web.config.
     //
-    // Ako ClientId e prazen - provajderot ne e registriran, butonot na Login stranata
-    // ne se prikazuva, aplikacijata ne crash-nuva. Istata ovaa logika raboti niz site okruzhuvanja.
+    // Ako keys ne se postaveni - provajderot ne se registrira, butonot na Login stranata
+    // ne se prikazuva, aplikacijata ne crash-nuva. Istata logika raboti niz site okruzhuvanja.
     public static class AuthenticationServiceCollectionExtensions
     {
         public static IServiceCollection AddExternalAuthentication(
@@ -27,6 +30,7 @@ namespace AspNetCoreMvcTemplate.Web.Extensions
                     options.ClientSecret = googleClientSecret;
                     // Google vrakja email_verified claim direktno od id_tokenot.
                     // Avtomatski se mapira na ClaimsPrincipal - nema dopolnitelna konfiguracija.
+                    options.Events.OnRemoteFailure = HandleRemoteFailure;
                 });
             }
 
@@ -39,6 +43,7 @@ namespace AspNetCoreMvcTemplate.Web.Extensions
                 {
                     options.ClientId = microsoftClientId;
                     options.ClientSecret = microsoftClientSecret;
+                    options.Events.OnRemoteFailure = HandleRemoteFailure;
                 });
             }
 
@@ -55,10 +60,28 @@ namespace AspNetCoreMvcTemplate.Web.Extensions
                 {
                     options.AppId = facebookAppId;
                     options.AppSecret = facebookAppSecret;
+                    options.Events.OnRemoteFailure = HandleRemoteFailure;
                 });
             }
 
             return services;
+        }
+
+        // Bez ovaa hooka, OAuth handler-ot frla exception koga userot kje klikne
+        // "Cancel" na consent stranata na provajderot (Facebook posebno) - ke se
+        // pokaze 500 namesto friendly poraka. Ovde gi presretvame i go redirektirame
+        // browser-ot nazad do originalniot RedirectUri (sign-in callback ili link callback)
+        // so remoteError query param - controllerite vekje znaat kako da go handlat.
+        private static Task HandleRemoteFailure(RemoteFailureContext context)
+        {
+            var redirectUrl = context.Properties?.RedirectUri ?? "/Account/Login";
+            var separator = redirectUrl.Contains('?') ? "&" : "?";
+            var error = Uri.EscapeDataString(
+                context.Failure?.Message ?? "External sign-in was cancelled or failed.");
+
+            context.Response.Redirect($"{redirectUrl}{separator}remoteError={error}");
+            context.HandleResponse();
+            return Task.CompletedTask;
         }
     }
 }

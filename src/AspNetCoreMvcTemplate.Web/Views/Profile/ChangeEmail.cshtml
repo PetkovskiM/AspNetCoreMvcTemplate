@@ -1,0 +1,35 @@
+@using AspNetCoreMvcTemplate.Web.ViewModels.Profile
+@model ChangeEmailViewModel
+
+@{
+    ViewData["Title"] = "Change email";
+}
+
+<h1>Change your email</h1>
+
+<p class="text-muted">
+    We'll send a confirmation link to the new email address. The change takes effect only after
+    you click that link, so your current email keeps working until then.
+</p>
+
+<form asp-action="ChangeEmail" method="post">
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="CurrentEmail" class="form-label"></label>
+        <input asp-for="CurrentEmail" class="form-control" readonly />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NewEmail" class="form-label"></label>
+        <input asp-for="NewEmail" class="form-control" />
+        <span asp-validation-for="NewEmail" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Send confirmation</button>
+    <a asp-action="Index" class="btn btn-link">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

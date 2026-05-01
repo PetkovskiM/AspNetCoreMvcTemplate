@@ -22,7 +22,9 @@
         </li>
     }
     <li class="nav-item d-flex align-items-center me-2">
-        <span class="nav-link text-dark">Hello  @(currentUser?.Name ?? User.Identity?.Name)</span>
+        <a class="nav-link text-dark" asp-controller="Profile" asp-action="Index">
+            Hello @(currentUser?.Name ?? User.Identity?.Name)
+        </a>
     </li>
     <li class="nav-item d-flex align-items-center me-2">
         <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">

@@ -1,0 +1,114 @@
+@using AspNetCoreMvcTemplate.Web.ViewModels.Profile
+@model ProfileIndexViewModel
+
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<h1>Your profile</h1>
+
+@if (!string.IsNullOrEmpty(Model.StatusMessage))
+{
+    <div class="alert alert-info" role="alert">@Model.StatusMessage</div>
+}
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Account</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Name</dt>
+                    <dd class="col-sm-8">@Model.Name</dd>
+
+                    <dt class="col-sm-4">Email</dt>
+                    <dd class="col-sm-8">
+                        @Model.Email
+                        @if (Model.EmailConfirmed)
+                        {
+                            <span class="badge bg-success ms-1">Confirmed</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark ms-1">Unconfirmed</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Password</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.HasPassword)
+                        {
+                            <span class="badge bg-success">Set</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Not set</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+            <div class="card-footer bg-white">
+                <a asp-action="ChangeName" class="btn btn-outline-primary btn-sm">Change name</a>
+                <a asp-action="ChangeEmail" class="btn btn-outline-primary btn-sm">Change email</a>
+                @if (Model.HasPassword)
+                {
+                    <a asp-action="ChangePassword" class="btn btn-outline-primary btn-sm">Change password</a>
+                }
+                else
+                {
+                    <a asp-action="SetPassword" class="btn btn-outline-primary btn-sm">Set password</a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Linked accounts</div>
+            <div class="card-body">
+                @if (Model.CurrentLogins.Count == 0)
+                {
+                    <p class="text-muted mb-0">You don't have any external accounts linked.</p>
+                }
+                else
+                {
+                    <table class="table table-sm mb-0">
+                        <tbody>
+                            @foreach (var login in Model.CurrentLogins)
+                            {
+                                <tr>
+                                    <td>@(login.ProviderDisplayName ?? login.LoginProvider)</td>
+                                    <td class="text-end">
+                                        <form asp-action="RemoveLogin" method="post" class="d-inline">
+                                            <input type="hidden" name="loginProvider" value="@login.LoginProvider" />
+                                            <input type="hidden" name="providerKey" value="@login.ProviderKey" />
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">Unlink</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+            @if (Model.AvailableProviders.Count > 0)
+            {
+                <div class="card-footer bg-white">
+                    <span class="me-2">Link another:</span>
+                    <form asp-action="LinkLogin" method="post" class="d-inline">
+                        @foreach (var provider in Model.AvailableProviders)
+                        {
+                            <button type="submit"
+                                    class="btn btn-outline-secondary btn-sm me-1"
+                                    name="provider"
+                                    value="@provider.Name"
+                                    title="Link your @provider.DisplayName account">
+                                @provider.DisplayName
+                            </button>
+                        }
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+</div>
