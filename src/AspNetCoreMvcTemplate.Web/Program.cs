@@ -2,6 +2,7 @@ using AspNetCoreMvcTemplate.Emailing.DependencyInjection;
 using AspNetCoreMvcTemplate.Web.Authorization;
 using AspNetCoreMvcTemplate.Web.Data;
 using AspNetCoreMvcTemplate.Web.Extensions;
+using AspNetCoreMvcTemplate.Web.Features;
 using AspNetCoreMvcTemplate.Web.Models.Identity;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
@@ -21,8 +22,14 @@ namespace AspNetCoreMvcTemplate.Web
             builder.Services.AddControllersWithViews();
             builder.Services.AddEmailing(builder.Configuration);
             builder.Services.AddAdminBootstrap(builder.Configuration);
+            builder.Services.AddFeatureManagement(builder.Configuration);
             builder.Services.AddHealthChecks()
                 .AddDbContextCheck<ApplicationDbContext>();
+
+            // Chitame Features sekcijata sinhrono za startup-time odluki (Identity options,
+            // dali da registrirame eksterni provajderi). Runtime proverki idat preku IFeatureManager.
+            var features = new FeatureOptions();
+            builder.Configuration.GetSection("Features").Bind(features);
 
             var keysPath = builder.Configuration["DataProtection:KeysPath"]
             ?? throw new InvalidOperationException("DataProtection:KeysPath is not configured.");
@@ -43,7 +50,9 @@ namespace AspNetCoreMvcTemplate.Web
                 options.Password.RequireLowercase = false;
                 options.Password.RequireNonAlphanumeric = false;
 
-                options.SignIn.RequireConfirmedEmail = true;
+                // Ako EmailConfirmation feature-ot e isklucen, dozvoluvame
+                // sign-in bez potvrden email (i Register flow ne prakja confirmation email).
+                options.SignIn.RequireConfirmedEmail = features.EmailConfirmation;
 
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 options.Lockout.MaxFailedAccessAttempts = 5;
@@ -58,7 +67,12 @@ namespace AspNetCoreMvcTemplate.Web
             builder.Services.AddAuthorizationPolicies();
 
             //var authBuilder = services.AddAuthentication() ova samo extends the existing authentication setup, ne go pregazuva.
-            builder.Services.AddExternalAuthentication(builder.Configuration);
+            // Hard switch: koga ExternalLogins e isklucen, voopsto ne registriratame
+            // provajderi - dury i ako se konfigurirani ClientId/AppId vo settings.
+            if (features.ExternalLogins)
+            {
+                builder.Services.AddExternalAuthentication(builder.Configuration);
+            }
 
             builder.Services.ConfigureApplicationCookie(options =>
             {

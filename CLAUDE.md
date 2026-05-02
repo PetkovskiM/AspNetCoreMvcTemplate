@@ -28,7 +28,8 @@ ASP.NET Core 10 MVC starter template. Controllers + Views, EF Core, ASP.NET Core
 - **Error handling**: `ErrorController` with ServerError (500) and StatusCodeError (404/403)
 - **Logging**: Serilog (Console + File sinks), configured via `appsettings.json`, request logging middleware
 - **Health checks**: `/health` endpoint with EF Core database connectivity check
-- **Program.cs** uses extension methods: `AddEmailing()`, `AddAdminBootstrap()`, `AddSerilogLogging()`, `AddAuthorizationPolicies()`, `AddExternalAuthentication()`
+- **Feature toggles**: `Features/` folder defines `FeatureOptions` (5 bool flags: `AdminArea`, `ProfileManagement`, `Registration`, `ExternalLogins`, `EmailConfirmation`), `IFeatureManager` (`IsEnabled(string)`), `FeatureManager` (reads `IOptions<FeatureOptions>` via reflection), and `FeatureGateAttribute` (action filter, returns 404 when feature off — "this feature doesn't exist in this app" semantics, NOT 403). Wired via `AddFeatureManagement()` in Program.cs. Startup-time decisions (Identity's `RequireConfirmedEmail`, conditional `AddExternalAuthentication` call) bind a local `FeatureOptions` directly from config; runtime decisions (controllers, views) consume `IFeatureManager` via DI. Views (`_LoginPartial`) use `@inject IFeatureManager` to hide nav links for disabled features. Default for all flags is `true` so apps with no `Features` section behave exactly like before.
+- **Program.cs** uses extension methods: `AddEmailing()`, `AddAdminBootstrap()`, `AddSerilogLogging()`, `AddAuthorizationPolicies()`, `AddExternalAuthentication()`, `AddFeatureManagement()`
 
 ## Completed Features
 
@@ -46,7 +47,8 @@ ASP.NET Core 10 MVC starter template. Controllers + Views, EF Core, ASP.NET Core
 - GitHub Actions CI (build + test)
 - GitHub Actions CD (IIS deployment to staging)
 - Data protection keys persisted to file system
-- 66+ unit and integration tests
+- Feature toggles for AdminArea, ProfileManagement, Registration, ExternalLogins, EmailConfirmation (configurable via `Features` section in appsettings.json)
+- 73+ unit and integration tests
 
 ## Branching
 

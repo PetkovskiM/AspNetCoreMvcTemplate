@@ -1,5 +1,6 @@
 ﻿using AspNetCoreMvcTemplate.Emailing.Abstractions;
 using AspNetCoreMvcTemplate.Web.Controllers;
+using AspNetCoreMvcTemplate.Web.Features;
 using AspNetCoreMvcTemplate.Web.Models.Identity;
 using AspNetCoreMvcTemplate.Web.ViewModels.Account;
 using Microsoft.AspNetCore.Http;
@@ -254,10 +255,16 @@ public class AccountControllerTests
         SignInManager<ApplicationUser> signInManager,
         IEmailSender emailSender)
     {
+        // Default: site features se vkluceni - tako site postojni testovi
+        // se odnesuvaat kako i pred dodavanjeto na feature toggles.
+        var featureManager = new Mock<IFeatureManager>();
+        featureManager.Setup(x => x.IsEnabled(It.IsAny<string>())).Returns(true);
+
         return new AccountController(
             userManager,
             signInManager,
             emailSender,
+            featureManager.Object,
             NullLogger<AccountController>.Instance);
     }
 

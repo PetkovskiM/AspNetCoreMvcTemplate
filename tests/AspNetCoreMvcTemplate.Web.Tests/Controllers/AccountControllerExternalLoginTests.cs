@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using AspNetCoreMvcTemplate.Emailing.Abstractions;
 using AspNetCoreMvcTemplate.Web.Controllers;
+using AspNetCoreMvcTemplate.Web.Features;
 using AspNetCoreMvcTemplate.Web.Models.Identity;
 using AspNetCoreMvcTemplate.Web.ViewModels.Account;
 using Microsoft.AspNetCore.Http;
@@ -196,10 +197,14 @@ public class AccountControllerExternalLoginTests
         SignInManager<ApplicationUser> signInManager,
         IEmailSender emailSender)
     {
+        var featureManager = new Mock<IFeatureManager>();
+        featureManager.Setup(x => x.IsEnabled(It.IsAny<string>())).Returns(true);
+
         var controller = new AccountController(
             userManager,
             signInManager,
             emailSender,
+            featureManager.Object,
             NullLogger<AccountController>.Instance);
 
         // URL helper e potreben za Url.Action i Url.IsLocalUrl vo actionite.
