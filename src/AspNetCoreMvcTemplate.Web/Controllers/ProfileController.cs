@@ -1,5 +1,6 @@
 using AspNetCoreMvcTemplate.Emailing.Abstractions;
 using AspNetCoreMvcTemplate.Emailing.Models;
+using AspNetCoreMvcTemplate.Web.Features;
 using AspNetCoreMvcTemplate.Web.Models.Identity;
 using AspNetCoreMvcTemplate.Web.ViewModels.Profile;
 using Microsoft.AspNetCore.Authentication;
@@ -12,6 +13,7 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
     // Self-service profile actions. Site dejstva baraat avtenticiran user.
     [Authorize]
     [AutoValidateAntiforgeryToken]
+    [FeatureGate(nameof(FeatureOptions.ProfileManagement))]
     public class ProfileController : Controller
     {
         private readonly UserManager<ApplicationUser> userManager;

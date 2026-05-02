@@ -1,5 +1,6 @@
 using AspNetCoreMvcTemplate.Web.Areas.Admin.ViewModels;
 using AspNetCoreMvcTemplate.Web.Authorization;
+using AspNetCoreMvcTemplate.Web.Features;
 using AspNetCoreMvcTemplate.Web.Models.Identity;
 using AspNetCoreMvcTemplate.Web.Options;
 using Microsoft.AspNetCore.Authorization;
@@ -12,6 +13,7 @@ namespace AspNetCoreMvcTemplate.Web.Areas.Admin.Controllers
     [Area("Admin")]
     [Authorize(Policy = AuthorizationPolicies.AdminOnly)]
     [AutoValidateAntiforgeryToken]
+    [FeatureGate(nameof(FeatureOptions.AdminArea))]
     public class UsersController : Controller
     {
         private readonly UserManager<ApplicationUser> userManager;

@@ -1,5 +1,6 @@
 using AspNetCoreMvcTemplate.Emailing.Abstractions;
 using AspNetCoreMvcTemplate.Emailing.Models;
+using AspNetCoreMvcTemplate.Web.Features;
 using AspNetCoreMvcTemplate.Web.Models.Identity;
 using AspNetCoreMvcTemplate.Web.ViewModels.Account;
 using Microsoft.AspNetCore.Authorization;
@@ -15,17 +16,20 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
         private readonly UserManager<ApplicationUser> userManager;
         private readonly SignInManager<ApplicationUser> signInManager;
         private readonly IEmailSender emailSender;
+        private readonly IFeatureManager featureManager;
         private readonly ILogger<AccountController> logger;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IEmailSender emailSender,
+            IFeatureManager featureManager,
             ILogger<AccountController> logger)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.emailSender = emailSender;
+            this.featureManager = featureManager;
             this.logger = logger;
         }
 
@@ -97,6 +101,7 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
 
         [HttpGet]
         [AllowAnonymous]
+        [FeatureGate(nameof(FeatureOptions.Registration))]
         public IActionResult Register()
         {
             return View();
@@ -104,6 +109,7 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
 
         [HttpPost]
         [AllowAnonymous]
+        [FeatureGate(nameof(FeatureOptions.Registration))]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid)
@@ -111,19 +117,31 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
                 return View(model);
             }
 
+            var emailConfirmationEnabled = featureManager.IsEnabled(nameof(FeatureOptions.EmailConfirmation));
+
             var user = new ApplicationUser
             {
                 UserName = model.Email,
                 Email = model.Email,
-                Name = model.Name
+                Name = model.Name,
+                // Ako EmailConfirmation feature-ot e isklucen, novite useri vlegvaat
+                // direktno bez email confirmation step.
+                EmailConfirmed = !emailConfirmationEnabled
             };
 
             var result = await userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
             {
-                //Create token for email confirmation and send email with the token
+                if (!emailConfirmationEnabled)
+                {
+                    // Sleep mode na confirmation flow-ot - signiraj se direktno.
+                    await signInManager.SignInAsync(user, isPersistent: false);
+                    logger.LogInformation("User {Email} registered and signed in (email confirmation disabled).", model.Email);
+                    return RedirectToAction("Index", "Home");
+                }
 
+                //Create token for email confirmation and send email with the token
                 var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
                 var confirmationLink = Url.Action(nameof(ConfirmEmail), "Account", new { userId = user.Id, token }, Request.Scheme);
@@ -174,6 +192,7 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
 
         [HttpGet]
         [AllowAnonymous]
+        [FeatureGate(nameof(FeatureOptions.Registration))]
         public IActionResult RegisterConfirmation(string? email)
         {
             ViewBag.Email = email;
@@ -224,6 +243,7 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
         // redirektira nazad do ExternalLoginCallback.
         [HttpPost]
         [AllowAnonymous]
+        [FeatureGate(nameof(FeatureOptions.ExternalLogins))]
         public IActionResult ExternalLogin(string provider, string? returnUrl = null)
         {
             if (string.IsNullOrWhiteSpace(provider))
@@ -244,6 +264,7 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
         //  3. Nov user bez email claim -> redirektiraj na formata za potvrda
         [HttpGet]
         [AllowAnonymous]
+        [FeatureGate(nameof(FeatureOptions.ExternalLogins))]
         public async Task<IActionResult> ExternalLoginCallback(string? returnUrl = null, string? remoteError = null)
         {
             if (remoteError != null)
@@ -308,6 +329,7 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
         // Fallback za Sluchaj 3 - userot rachno vnese email.
         [HttpPost]
         [AllowAnonymous]
+        [FeatureGate(nameof(FeatureOptions.ExternalLogins))]
         public async Task<IActionResult> ExternalLoginConfirmation(ExternalLoginConfirmationViewModel model)
         {
             if (!ModelState.IsValid)
@@ -544,6 +566,7 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
 
         [HttpGet]
         [AllowAnonymous]
+        [FeatureGate(nameof(FeatureOptions.EmailConfirmation))]
         public IActionResult ResendConfirmationEmail(string? email = null)
         {
             var model = new EmailInputViewModel
@@ -556,6 +579,7 @@ namespace AspNetCoreMvcTemplate.Web.Controllers
 
         [HttpPost]
         [AllowAnonymous]
+        [FeatureGate(nameof(FeatureOptions.EmailConfirmation))]
         //Napraven e ovoj endpoint so namera da se koristi i za resend confirmation email. Ne se koristi za forgot password zatoa sto za forgot password ne e potrebno da se proveruva dali email e confirmed, a i tokenot e razlicen.
         public async Task<IActionResult> ResendConfirmationEmail(EmailInputViewModel model)
         {
