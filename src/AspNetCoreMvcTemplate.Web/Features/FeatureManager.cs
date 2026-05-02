@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.Extensions.Options;
 
 namespace AspNetCoreMvcTemplate.Web.Features
@@ -20,7 +21,7 @@ namespace AspNetCoreMvcTemplate.Web.Features
         }
 
 
-        // moze i vaka Dictionary<string, Func<FeatureOptions, bool>> ama nemora sega, i ova e dovoljno
+        // moze i vaka Dictionary<string, Func<FeatureOptions, bool>> ama i nemora 
         public bool IsEnabled(string featureName)
         {
             if (string.IsNullOrWhiteSpace(featureName))
@@ -28,7 +29,12 @@ namespace AspNetCoreMvcTemplate.Web.Features
                 return false;
             }
 
-            var property = typeof(FeatureOptions).GetProperty(featureName);
+            // IgnoreCase za da ne e fragile na typo-i vo casing.
+            // case-insensitive e pobezbedna default vrednost.
+            var property = typeof(FeatureOptions).GetProperty(
+                featureName,
+                BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
             if (property is null || property.PropertyType != typeof(bool))
             {
                 return false;

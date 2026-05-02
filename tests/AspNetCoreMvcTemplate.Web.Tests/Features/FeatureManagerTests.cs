@@ -40,6 +40,20 @@ public class FeatureManagerTests
     }
 
     [Fact]
+    public void IsEnabled_IsCaseInsensitive()
+    {
+        var options = Microsoft.Extensions.Options.Options.Create(new FeatureOptions
+        {
+            AdminArea = true
+        });
+        var manager = new FeatureManager(options);
+
+        Assert.True(manager.IsEnabled("adminarea"));
+        Assert.True(manager.IsEnabled("ADMINAREA"));
+        Assert.True(manager.IsEnabled("AdMiNaReA"));
+    }
+
+    [Fact]
     public void IsEnabled_ReturnsFalse_WhenFeatureNameIsEmpty()
     {
         var options = Microsoft.Extensions.Options.Options.Create(new FeatureOptions());

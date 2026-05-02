@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AspNetCoreMvcTemplate.Web.Features
 {
@@ -33,10 +34,16 @@ namespace AspNetCoreMvcTemplate.Web.Features
             // Resolvirame IFeatureManager od request-scoped DI kontejnerot.
             // Atributite ne mozat da imaat constructor injection - ova e standarden
             // workaround vo MVC.
+            //
+            // GetRequiredService (a ne GetService) namerno: ako IFeatureManager ne
+            // e registriran, toa e application wiring greshka - pobezbedno e da
+            // frlame exception otkolku da pretvorame site feature-gated routi vo
+            // 404. tivok 404 izgleda kako "feature isklucena" i e loso za
+            // debug. Fail-fast e podobro.
             var featureManager = context.HttpContext.RequestServices
-                .GetService(typeof(IFeatureManager)) as IFeatureManager;
+                .GetRequiredService<IFeatureManager>();
 
-            if (featureManager is null || !featureManager.IsEnabled(featureName))
+            if (!featureManager.IsEnabled(featureName))
             {
                 context.Result = new NotFoundResult();
             }

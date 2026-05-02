@@ -41,16 +41,15 @@ public class FeatureGateAttributeTests
     }
 
     [Fact]
-    public void OnAuthorization_Returns404_WhenFeatureManagerIsNotRegistered()
+    public void OnAuthorization_Throws_WhenFeatureManagerIsNotRegistered()
     {
-        // Edge case: ako nekoj zaboravi da go registrira IFeatureManager-ot,
-        // pobezbedno e da blokirame request-ot otkolku da pretpostavime "vkluceno".
+        // Misskonfiguracija (zaboraven AddFeatureManagement() call) treba glasno
+        // da se manifestira preku exception, a ne da se prikrie kako 404.
+        // 404 bi izgledalo identicno so "feature isklucena" - loso za debug.
         var context = CreateContext(featureManager: null);
         var filter = new FeatureGateAttribute("AdminArea");
 
-        filter.OnAuthorization(context);
-
-        Assert.IsType<NotFoundResult>(context.Result);
+        Assert.Throws<InvalidOperationException>(() => filter.OnAuthorization(context));
     }
 
     private static AuthorizationFilterContext CreateContext(IFeatureManager? featureManager)
