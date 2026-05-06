@@ -29,6 +29,7 @@ ASP.NET Core 10 MVC starter template. Controllers + Views, EF Core, ASP.NET Core
 - **Logging**: Serilog (Console + File sinks), configured via `appsettings.json`, request logging middleware
 - **Health checks**: `/health` endpoint with EF Core database connectivity check
 - **Feature toggles**: `Features/` folder defines `FeatureOptions` (5 bool flags: `AdminArea`, `ProfileManagement`, `Registration`, `ExternalLogins`, `EmailConfirmation`), `IFeatureManager` (`IsEnabled(string)`), `FeatureManager` (reads `IOptions<FeatureOptions>` via reflection), and `FeatureGateAttribute` (action filter, returns 404 when feature off — "this feature doesn't exist in this app" semantics, NOT 403). Wired via `AddFeatureManagement()` in Program.cs. Startup-time decisions (Identity's `RequireConfirmedEmail`, conditional `AddExternalAuthentication` call) bind a local `FeatureOptions` directly from config; runtime decisions (controllers, views) consume `IFeatureManager` via DI. Views (`_LoginPartial`) use `@inject IFeatureManager` to hide nav links for disabled features. Default for all flags is `true` so apps with no `Features` section behave exactly like before.
+- **Integration tests**: `tests/.../Integration/` boots the full `Program.cs` pipeline in-memory via `WebApplicationFactory<Program>`. `CustomWebApplicationFactory` swaps SQL Server for **SQLite in-memory** (real SQL semantics; EF In-Memory hides constraint bugs), replaces real `IEmailSender` with `TestEmailSender` (captures messages instead of sending), uses `EphemeralDataProtectionProvider`, and exposes a `ConfigurationOverrides` dictionary so per-test feature flag overrides work without polluting `appsettings.json`. SQL Server provider services are scrubbed from DI before SQLite is registered (otherwise EF rejects "multiple relational provider configurations"). `EnsureCreated()` materializes schema after host build, not during `ConfigureServices` (the partial container at that stage can't satisfy EF dependencies). `AntiforgeryHelper` parses the `__RequestVerificationToken` from a GET form before posting — exercises the real CSRF pipeline rather than disabling antiforgery in tests.
 - **Program.cs** uses extension methods: `AddEmailing()`, `AddAdminBootstrap()`, `AddSerilogLogging()`, `AddAuthorizationPolicies()`, `AddExternalAuthentication()`, `AddFeatureManagement()`
 
 ## Completed Features
@@ -48,7 +49,8 @@ ASP.NET Core 10 MVC starter template. Controllers + Views, EF Core, ASP.NET Core
 - GitHub Actions CD (IIS deployment to staging)
 - Data protection keys persisted to file system
 - Feature toggles for AdminArea, ProfileManagement, Registration, ExternalLogins, EmailConfirmation (configurable via `Features` section in appsettings.json)
-- 73+ unit and integration tests
+- End-to-end integration tests via `WebApplicationFactory` + SQLite in-memory (auth flow, authorization, feature toggles, health endpoint)
+- 89+ unit and integration tests
 
 ## Branching
 
